@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CryptaVeritas — Signal Verifier</title>
+  <style>
+    body { font-family: monospace; max-width: 700px; margin: 40px auto; padding: 20px; background: #0d1117; color: #c9d1d9; }
+    h1 { color: #58a6ff; }
+    input, textarea { width: 100%; padding: 8px; margin: 6px 0 14px; background: #161b22; color: #c9d1d9; border: 1px solid #30363d; border-radius: 6px; box-sizing: border-box; }
+    button { background: #238636; color: white; border: none; padding: 10px 24px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+    button:hover { background: #2ea043; }
+    #result { margin-top: 20px; padding: 16px; border-radius: 6px; display: none; }
+    .ok { background: #0f2d1a; border: 1px solid #238636; color: #3fb950; }
+    .fail { background: #2d0f0f; border: 1px solid #da3633; color: #f85149; }
+    label { color: #8b949e; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <h1>🔐 CryptaVeritas Verifier</h1>
+  <p>Verify that a trading signal was not tampered with after commitment.</p>
+
+  <label>Precommit Hash (64 hex chars)</label>
+  <input id="hash" placeholder="e.g. a3f1c2...">
+
+  <label>Signal JSON</label>
+  <textarea id="signal" rows="6" placeholder='{"version":"v1","publisher":"agent",...}'></textarea>
+
+  <label>Salt (64 hex chars)</label>
+  <input id="salt" placeholder="e.g. b4e2d1...">
+
+  <button onclick="verify()">Verify</button>
+
+  <div id="result"></div>
+
+  <script>
+    async function sha256(message) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(message);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    function toStrictString(val, seen = new Set(), depth = 0) {
+      if (depth > 20) throw new Error('Depth limit exceeded');
+      if (val === null) return 'null';
+      if (val === undefined) throw new Error('undefined not allowed');
+      const type = typeof val;
+      if (type !== 'object') return JSON.stringify(val);
+      if (seen.has(val)) throw new Error('Circular reference');
+      seen.add(val);
+      if (Array.isArray(val)) {
+        const items = val.map(i => toStrictString(i, seen, depth + 1));
+        seen.delete(val);
+        return '[' + items.join(',') + ']';
+      }
+      const keys = Object.keys(val).sort();
+      const pairs = keys.map(k => JSON.stringify(k) + ':' + toStrictString(val[k], seen, depth + 1));
+      seen.delete(val);
+      return '{' + pairs.join(',') + '}';
+    }
+
+    async function verify() {
+      const hash = document.getElementById('hash').value.trim();
+      const signalRaw = document.getElementById('signal').value.trim();
+      const salt = document.getElementById('salt').value.trim();
+      const result = document.getElementById('result');
+
+      try {
+        if (!/^[0-9a-fA-F]{64}$/.test(hash)) throw new Error('Invalid hash format');
+        if (!/^[0-9a-fA-F]{64}$/.test(salt)) throw new Error('Invalid salt format');
+        const signal = JSON.parse(signalRaw);
+        const strictData = toStrictString(signal);
+        const payload = 'cryptasignals:v1|signal|' + strictData + '|' + salt;
+        const computed = await sha256(payload);
+        if (computed === hash.toLowerCase()) {
+          result.className = 'ok';
+          result.innerHTML = '✅ <b>VERIFIED</b> — Hash matches. Signal was not tampered with.';
+        } else {
+          result.className = 'fail';
+          result.innerHTML = '❌ <b>INVAL
