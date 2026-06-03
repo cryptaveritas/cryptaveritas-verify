@@ -277,5 +277,17 @@ async function doVerify(){
   result.style.display = 'block';
 }
 </script>
+
+<script>
+// Auto-fill hash from URL parameter
+window.addEventListener('DOMContentLoaded', function() {
+  const params = new URLSearchParams(window.location.search);
+  const hash = params.get('hash');
+  if (hash) {
+    document.getElementById('hash').value = hash;
+    document.getElementById('hash').style.borderColor = '#06b6d4';
+  }
+});
+</script>
 </body>
 </html>
