@@ -30,9 +30,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:1
 .nav-right a:hover{color:var(--text)}
 .nav-badge{font-family:var(--mono);font-size:10px;padding:4px 10px;border:1px solid var(--accent);color:var(--accent);letter-spacing:1px}
 
-.main{flex:1;display:flex;align-items:center;justify-content:center;padding:40px 20px}
+.main{flex:1;display:flex;align-items:flex-start;justify-content:center;padding:24px 20px}
 
-.card{width:100%;max-width:540px;background:var(--surface);border:1px solid var(--border);padding:40px}
+.card{width:100%;max-width:640px;background:var(--surface);border:1px solid var(--border);padding:44px}
 
 .card-header{margin-bottom:28px}
 .card-title{
@@ -119,7 +119,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:1
   <div class="card">
     <div class="card-header">
       <div class="card-title">Verify <em>Cryptographic</em> Integrity</div>
-      <div class="card-subtitle">Verify that a revealed signal exactly matches its original cryptographic commitment. No trust required — math does the verification.</div>
+      <div class="card-subtitle">Verify that a revealed signal exactly matches its original cryptographic commitment.<br>No trust required — math does the verification.</div>
       <div class="card-divider"></div>
       <button class="example-btn" onclick="loadExample()">⚡ Load Example</button>
     </div>
